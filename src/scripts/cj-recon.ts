@@ -8,7 +8,7 @@ import { SEARCH_KEYWORDS } from '@/lib/cj/keywords'
 
 const SEARCH_PAGE_SIZE = 50
 const MAX_PAGES_PER_KEYWORD = 3
-const SEARCH_DELAY_MS = 1000
+const CJ_REQUEST_DELAY_MS = 2000
 const CREATE_DELAY_MS = 500
 
 type CandidateRecord = {
@@ -57,6 +57,7 @@ async function main() {
   const payload = await getPayload({ config })
   const cjClient = new CjClient()
   const uniqueProducts = new Map<string, CandidateRecord>()
+  let lastCjRequestAt = 0
   const stats: ReconStats = {
     keywordsFailed: 0,
     totalProductsFound: 0,
@@ -66,6 +67,18 @@ async function main() {
     errors: 0,
   }
 
+  const throttledSearchProducts = async (keyword: string, page: number) => {
+    const elapsed = Date.now() - lastCjRequestAt
+
+    if (lastCjRequestAt > 0 && elapsed < CJ_REQUEST_DELAY_MS) {
+      await sleep(CJ_REQUEST_DELAY_MS - elapsed)
+    }
+
+    const response = await cjClient.searchProducts(keyword, page, SEARCH_PAGE_SIZE)
+    lastCjRequestAt = Date.now()
+    return response
+  }
+
   for (const keyword of SEARCH_KEYWORDS) {
     console.log(`Searching CJ for "${keyword}"`)
 
@@ -73,17 +86,18 @@ async function main() {
       let keywordFailed = false
 
       for (let page = 1; page <= MAX_PAGES_PER_KEYWORD; page += 1) {
-        const response = await cjClient.searchProducts(keyword, page, SEARCH_PAGE_SIZE)
+        const response = await throttledSearchProducts(keyword, page)
 
         if (!response) {
           keywordFailed = true
           break
         }
 
-        const products = response?.data?.list
+        const products = response.data?.list
 
         if (!products?.length) {
           console.warn(`No product data returned for keyword "${keyword}" page ${page}`)
+          console.warn('CJ raw response for empty product data:', JSON.stringify(response, null, 2))
           break
         }
 
@@ -108,8 +122,6 @@ async function main() {
         if (products.length < SEARCH_PAGE_SIZE) {
           break
         }
-
-        await sleep(SEARCH_DELAY_MS)
       }
 
       if (keywordFailed) {
