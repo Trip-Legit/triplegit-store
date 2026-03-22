@@ -25,6 +25,14 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      views: {
+        candidateReview: {
+          Component: '/app/(payload)/admin/candidate-review/page',
+          path: '/candidate-review',
+        },
+      },
+    },
   },
   collections: [
     Users,

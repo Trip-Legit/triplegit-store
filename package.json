@@ -7,6 +7,7 @@
   "scripts": {
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
     "cj:recon": "node --env-file=.env.local node_modules/.bin/tsx src/scripts/cj-recon.ts",
+    "cj:score": "node --env-file=.env.local node_modules/.bin/tsx src/scripts/cj-score.ts",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
@@ -19,6 +20,8 @@
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
+    "@payloadcms/db-postgres": "3.80.0",
     "@payloadcms/next": "3.80.0",
     "@payloadcms/richtext-lexical": "3.80.0",
     "@payloadcms/ui": "3.80.0",
@@ -29,8 +32,7 @@
     "payload": "3.80.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sharp": "0.34.2",
-    "@payloadcms/db-postgres": "3.80.0"
+    "sharp": "0.34.2"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
