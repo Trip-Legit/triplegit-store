@@ -14,6 +14,7 @@ import { Orders } from './collections/Orders'
 import { Customers } from './collections/Customers'
 import { Editorial } from './collections/Editorial'
 import { DigitalAssets } from './collections/DigitalAssets'
+import { CandidateProducts } from './collections/CandidateProducts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -35,6 +36,7 @@ export default buildConfig({
     Customers,
     Editorial,
     DigitalAssets,
+    CandidateProducts,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
