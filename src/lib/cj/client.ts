@@ -4,10 +4,17 @@ type CJProductSearchResponse = {
   code: number
   result: boolean
   data?: {
-    pageNum: number
+    pageNumber: number
     pageSize: number
-    total: number
-    list: CjProduct[]
+    totalRecords: number
+    totalPages: number
+    content: Array<{
+      productList?: CjProduct[] | null
+      relatedCategoryList?: unknown[]
+      keyWord?: string
+      keyWordOld?: string
+      [key: string]: unknown
+    }>
   } | null
   message?: string
 }
@@ -20,9 +27,17 @@ export type CjProduct = {
   oneCategoryName?: string | null
   twoCategoryName?: string | null
   threeCategoryName?: string | null
-  variantCount?: number | null
-  warehouseInventory?: number | null
+  warehouseInventoryNum?: number | null
   [key: string]: unknown
+}
+
+export type CjSearchProductsResult = {
+  pageNumber: number
+  pageSize: number
+  totalRecords: number
+  totalPages: number
+  products: CjProduct[]
+  rawResponse: CJProductSearchResponse
 }
 
 type CJRefreshResponse = {
@@ -53,8 +68,8 @@ export class CjClient {
     }
   }
 
-  async searchProducts(keyword: string, page: number, size: number): Promise<CJProductSearchResponse | null> {
-    return this.request<CJProductSearchResponse>(
+  async searchProducts(keyword: string, page: number, size: number): Promise<CjSearchProductsResult | null> {
+    const response = await this.request<CJProductSearchResponse>(
       `/product/listV2?${new URLSearchParams({
         keyWord: keyword,
         size: String(size),
@@ -64,6 +79,21 @@ export class CjClient {
         startWarehouseInventory: '20',
       }).toString()}`,
     )
+
+    if (!response?.data) {
+      return null
+    }
+
+    const products = response.data.content.flatMap((group) => group.productList ?? [])
+
+    return {
+      pageNumber: response.data.pageNumber,
+      pageSize: response.data.pageSize,
+      totalRecords: response.data.totalRecords,
+      totalPages: response.data.totalPages,
+      products,
+      rawResponse: response,
+    }
   }
 
   async refreshToken(): Promise<void> {

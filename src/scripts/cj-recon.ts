@@ -33,7 +33,9 @@ const parseSupplierPrice = (sellPrice: CjProduct['sellPrice']): number => {
   }
 
   if (typeof sellPrice === 'string') {
-    const lowerBound = sellPrice.split('~')[0]?.trim() || ''
+    const lowerBound = sellPrice.includes(' -- ')
+      ? sellPrice.split(' -- ')[0]?.trim() || ''
+      : sellPrice.split('~')[0]?.trim() || ''
     const parsed = Number.parseFloat(lowerBound)
 
     if (Number.isFinite(parsed)) {
@@ -93,11 +95,11 @@ async function main() {
           break
         }
 
-        const products = response.data?.list
+        const products = response.products
 
         if (!products?.length) {
           console.warn(`No product data returned for keyword "${keyword}" page ${page}`)
-          console.warn('CJ raw response for empty product data:', JSON.stringify(response, null, 2))
+          console.warn('CJ raw response for empty product data:', JSON.stringify(response.rawResponse, null, 2))
           break
         }
 
@@ -119,7 +121,7 @@ async function main() {
           })
         }
 
-        if (products.length < SEARCH_PAGE_SIZE) {
+        if (response.pageNumber >= response.totalPages) {
           break
         }
       }
@@ -163,8 +165,8 @@ async function main() {
           supplier_category: buildSupplierCategory(record.product),
           supplier_image_url: record.product.bigImage || '',
           supplier_data: record.product,
-          variant_count: record.product.variantCount ?? undefined,
-          inventory: record.product.warehouseInventory ?? undefined,
+          variant_count: 0,
+          inventory: record.product.warehouseInventoryNum ?? undefined,
           search_keyword: record.firstKeyword,
           status: 'pending_review',
         },
