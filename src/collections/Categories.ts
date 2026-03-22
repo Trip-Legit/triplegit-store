@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { slugField } from '../hooks/slugify'
+
 export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
@@ -21,6 +23,9 @@ export const Categories: CollectionConfig = {
       required: true,
       unique: true,
       index: true,
+      hooks: {
+        beforeChange: [slugField],
+      },
       admin: {
         description: 'Auto-generated from title. Used for URL paths.',
       },
